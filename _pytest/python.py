@@ -9,7 +9,7 @@ import sys
 import py
 import pytest
 from _pytest._code.code import TerminalRepr
-from _pytest.mark import MarkDecorator, MarkerError
+from _pytest.mark import MarkDecorator, MarkerError, MarkInfo, dict_update_but_add_mark
 
 try:
     import enum
@@ -874,7 +874,7 @@ class CallSpec2(object):
             if val is _notexists:
                 self._emptyparamspecified = True
         self._idlist.append(id)
-        self.keywords.update(keywords)
+        dict_update_but_add_mark(self.keywords, keywords)
 
     def setall(self, funcargs, id, param):
         for x in funcargs:
@@ -1354,12 +1354,12 @@ class Function(FunctionMixin, pytest.Item, FuncargnamesCompatAttr):
         if callobj is not NOTSET:
             self.obj = callobj
 
-        self.keywords.update(self.obj.__dict__)
+        dict_update_but_add_mark(self.keywords, self.obj.__dict__)
         if callspec:
             self.callspec = callspec
-            self.keywords.update(callspec.keywords)
+            dict_update_but_add_mark(self.keywords, callspec.keywords)
         if keywords:
-            self.keywords.update(keywords)
+            dict_update_but_add_mark(self.keywords, keywords)
 
         if fixtureinfo is None:
             fixtureinfo = self.session._fixturemanager.getfixtureinfo(

@@ -950,6 +950,29 @@ class TestMarkersWithParametrization:
             assert mark in items[1].keywords
             assert mark not in items[2].keywords
 
+    @pytest.mark.issue1387
+    def test_adding_marks_in_method_params(self, testdir):
+        s = """
+            import pytest
+
+            @pytest.mark.path('class')
+            class TestFoo(object):
+                @pytest.mark.parametrize('x', [pytest.mark.path('method-param')(12345)])
+                @pytest.mark.path('method')
+                def test_foo(self, x):
+                    pass
+
+                @pytest.mark.path('method')
+                @pytest.mark.parametrize('x', [pytest.mark.path('method-param')(12345)])
+                def test_bar(self, x):
+                    pass
+        """
+        items = testdir.getitems(s)
+        assert len(items) == 2
+        for item in items:
+            assert 'path' in item.keywords
+            assert frozenset(item.keywords['path'].args) == {'class', 'method', 'method-param'}
+
     def test_simple_xfail(self, testdir):
         s = """
             import pytest

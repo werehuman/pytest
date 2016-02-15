@@ -309,3 +309,27 @@ class MarkInfo:
         """ yield MarkInfo objects each relating to a marking-call. """
         for args, kwargs in self._arglist:
             yield MarkInfo(self.name, args, kwargs)
+
+
+def dict_update_but_add_mark(source_dict, other):
+    if hasattr(other, 'iteritems'):
+        other = other.iteritems()
+    elif hasattr(other, 'items'):
+        other = other.items()
+
+    for key, other_value in other:
+        try:
+            source_value = source_dict[key]
+        except KeyError:
+            pass
+        else:
+            current_is_mark = isinstance(source_value, MarkInfo)
+            other_is_mark = isinstance(other_value, (MarkDecorator, MarkInfo))
+            if current_is_mark != other_is_mark:
+                raise ValueError(
+                    "Key {0!r}: Can't override {1!r} with {2!r}".format(
+                        key, source_value, other_value))
+            elif other_is_mark:
+                source_value.add(other_value.args, other_value.kwargs)
+                continue
+        source_dict[key] = other_value
